@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MyMovieApp</string>
+    <string name="error_loading_string">Error loading movies: No connection</string>
+    <string name="now_playing_string">Now Playing</string>
+    <string name="popular_string">Popular</string>
+    <string name="top_rated_string">Top Rated</string>
+    <string name="action_search_string">Search</string>
+    <string name="no_results_string">No matching search results</string>
+</resources>

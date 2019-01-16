@@ -20,7 +20,7 @@ public class Movie implements Parcelable {
     public static final float POSTER_ASPECT_RATIO = 1.5f;
 
     @SerializedName("id")
-    private String mId;
+    private long mId;
     @SerializedName("original_title")
     private String mTitle;
     @SerializedName("poster_path")
@@ -34,7 +34,7 @@ public class Movie implements Parcelable {
     @SerializedName("backdrop_path")
     private String mBackdrop;
 
-    public String getmId() {
+    public long getmId() {
         return mId;
     }
 
@@ -92,7 +92,7 @@ public class Movie implements Parcelable {
     }
 
     protected Movie(Parcel in) {
-        mId = in.readString();
+        mId = in.readLong();
         mTitle = in.readString();
         mPoster = in.readString();
         mOverview = in.readString();
@@ -120,7 +120,7 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mId);
+        dest.writeLong(mId);
         dest.writeString(mTitle);
         dest.writeString(mPoster);
         dest.writeString(mOverview);

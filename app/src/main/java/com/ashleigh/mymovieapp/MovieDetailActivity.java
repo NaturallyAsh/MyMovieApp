@@ -1,33 +1,48 @@
 package com.ashleigh.mymovieapp;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.ashleigh.mymovieapp.adapters.TrailerAdapter;
+import com.ashleigh.mymovieapp.data.FetchTrailerTask;
 import com.ashleigh.mymovieapp.models.Movie;
+import com.ashleigh.mymovieapp.models.Trailer;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MovieDetailActivity extends AppCompatActivity {
+public class MovieDetailActivity extends AppCompatActivity
+        implements FetchTrailerTask.OnTrailersFetchedListener, TrailerAdapter.OnTrailerClickedListener {
 
     private static final String TAG = MovieDetailActivity.class.getSimpleName();
 
     private Movie movie;
     private Context context;
+    private TrailerAdapter adapter;
+    private ArrayList<Trailer> trailerList = new ArrayList<>();
     @BindView(R.id.detail_appbar)
     AppBarLayout appBarLayout;
     @BindView(R.id.detail_CT)
@@ -36,6 +51,14 @@ public class MovieDetailActivity extends AppCompatActivity {
     Toolbar toolbar;
     @BindView(R.id.detail_imageView)
     ImageView movieBackdrop;
+    @BindView(R.id.detail_poster_IV)
+    ImageView posterIV;
+    @BindView(R.id.detail_reviews_TV)
+    TextView reviewsTV;
+    @BindView(R.id.detail_overviewTv)
+    TextView overviewTV;
+    @BindView(R.id.trailers_recyclerview)
+    RecyclerView recyclerView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,7 +83,16 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         loadBackdrop();
 
+        initViews();
 
+        LinearLayoutManager linearLayout =
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+
+        recyclerView.setLayoutManager(linearLayout);
+        adapter = new TrailerAdapter(MovieDetailActivity.this, trailerList, this);
+        recyclerView.setAdapter(adapter);
+
+        fetchTrailers(movie);
     }
 
     private void loadBackdrop() {
@@ -68,6 +100,38 @@ public class MovieDetailActivity extends AppCompatActivity {
             Glide.with(getApplicationContext())
                     .load(movie.getBackdropUrl())
                     .into(movieBackdrop);
+        }
+    }
+
+    private void initViews() {
+        if (movie != null) {
+            Glide.with(getApplicationContext())
+                    .load(movie.getPosterUrl())
+                    .into(posterIV);
+
+            reviewsTV.setText(movie.getmPopularity());
+
+            overviewTV.setText(movie.getmOverview());
+        }
+    }
+
+    private void fetchTrailers(Movie movie) {
+        new FetchTrailerTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, movie.getmId());
+    }
+
+    @Override
+    public void FetchedTrailers(List<Trailer> trailers) {
+        adapter.addTrailer(trailers);
+    }
+
+    @Override
+    public void TrailerClicked(Trailer trailer, int position) {
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + trailer.getmKey()));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(trailer.getTrailerUrl()));
+        try {
+            startActivity(appIntent);
+        } catch (ActivityNotFoundException e) {
+            startActivity(webIntent);
         }
     }
 }

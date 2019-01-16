@@ -1,5 +1,6 @@
 package com.ashleigh.mymovieapp.data;
 
+import com.ashleigh.mymovieapp.models.Details;
 import com.ashleigh.mymovieapp.models.Movies;
 import com.ashleigh.mymovieapp.models.Trailers;
 
@@ -12,6 +13,8 @@ public interface MovieListData {
 
     @GET("3/movie/{sort_by}")
     Call<Movies> fetchMovies(@Path("sort_by") String sortBy, @Query("api_key") String api_key);
+    @GET("3/movie/{movie_id}/release_dates")
+    Call<Details> fetchMovieDetails(@Path("movie_id") long id, @Query("api_key") String api_key);
     @GET("3/movie/{movie_id}/videos")
     Call<Trailers> fetchTrailers(@Path("movie_id") long id, @Query("api_key") String api_key);
     @GET("3/search/movie")

@@ -16,8 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.ashleigh.mymovieapp.adapters.TrailerAdapter;
+import com.ashleigh.mymovieapp.data.FetchDetailsTask;
 import com.ashleigh.mymovieapp.data.FetchTrailerTask;
+import com.ashleigh.mymovieapp.models.Detail;
 import com.ashleigh.mymovieapp.models.Movie;
+import com.ashleigh.mymovieapp.models.SubDetails;
 import com.ashleigh.mymovieapp.models.Trailer;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.AppBarLayout;
@@ -35,7 +38,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MovieDetailActivity extends AppCompatActivity
-        implements FetchTrailerTask.OnTrailersFetchedListener, TrailerAdapter.OnTrailerClickedListener {
+        implements FetchTrailerTask.OnTrailersFetchedListener, TrailerAdapter.OnTrailerClickedListener,
+        FetchDetailsTask.OnDetailsFetchedListener {
 
     private static final String TAG = MovieDetailActivity.class.getSimpleName();
 
@@ -59,6 +63,8 @@ public class MovieDetailActivity extends AppCompatActivity
     TextView overviewTV;
     @BindView(R.id.trailers_recyclerview)
     RecyclerView recyclerView;
+    @BindView(R.id.mpaa)
+    TextView mMPAA_TV;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,6 +99,7 @@ public class MovieDetailActivity extends AppCompatActivity
         recyclerView.setAdapter(adapter);
 
         fetchTrailers(movie);
+        fetchDetails(movie);
     }
 
     private void loadBackdrop() {
@@ -133,5 +140,25 @@ public class MovieDetailActivity extends AppCompatActivity
         } catch (ActivityNotFoundException e) {
             startActivity(webIntent);
         }
+    }
+
+    private void fetchDetails(Movie movie) {
+        new FetchDetailsTask(movie.getmReleaseDate(), this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, movie.getmId());
+    }
+
+    @Override
+    public void DetailsFetched(List<Detail> details) {
+        //Log.i(TAG, "called: " + details.size());
+        //Log.i(TAG, "response: " + details.get(i).getmIso());
+        for (int i = 0; i < details.size(); i++)
+            if (details.get(i).getmIso().contains("US")) {
+                List<SubDetails> subDetails = details.get(i).getmRelease();
+                for (int j = 0; j < subDetails.size(); i++) {
+                    /* Log.i(TAG, "cert: " + subDetails.get(j).getmCert()); */
+                    mMPAA_TV.setText(subDetails.get(j).getmCert());
+                    Log.i(TAG, "mpaa: " + mMPAA_TV.getText().toString());
+                    break;
+                }
+            }
     }
 }

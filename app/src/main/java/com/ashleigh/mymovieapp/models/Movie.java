@@ -12,6 +12,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class Movie implements Parcelable {
@@ -33,6 +34,12 @@ public class Movie implements Parcelable {
     private String mReleaseDate;
     @SerializedName("backdrop_path")
     private String mBackdrop;
+    @SerializedName("genre_ids")
+    private int[] mGenres;
+
+    public int[] getmGenres() {
+        return mGenres;
+    }
 
     public long getmId() {
         return mId;
@@ -69,7 +76,7 @@ public class Movie implements Parcelable {
     }
     public String getBackdropUrl() {
         if (mBackdrop != null && !mBackdrop.isEmpty()) {
-            return "http://image.tmdb.org/t/p/w500" + mBackdrop;
+            return "http://image.tmdb.org/t/p/w300" + mBackdrop;
         }
         return null;
     }
@@ -99,6 +106,7 @@ public class Movie implements Parcelable {
         mPopularity = in.readString();
         mReleaseDate = in.readString();
         mBackdrop = in.readString();
+        mGenres = in.createIntArray();
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -127,5 +135,6 @@ public class Movie implements Parcelable {
         dest.writeString(mPopularity);
         dest.writeString(mReleaseDate);
         dest.writeString(mBackdrop);
+        dest.writeIntArray(mGenres);
     }
 }

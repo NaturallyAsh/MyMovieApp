@@ -3,11 +3,13 @@ package com.ashleigh.mymovieapp;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -26,8 +28,17 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,6 +76,8 @@ public class MovieDetailActivity extends AppCompatActivity
     RecyclerView recyclerView;
     @BindView(R.id.mpaa)
     TextView mMPAA_TV;
+    @BindView(R.id.genres)
+    TextView mGenres;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,6 +113,8 @@ public class MovieDetailActivity extends AppCompatActivity
 
         fetchTrailers(movie);
         fetchDetails(movie);
+        setGenre();
+        //Log.i(TAG, "genres: " + Arrays.toString(movie.getmGenres()));
     }
 
     private void loadBackdrop() {
@@ -120,6 +135,49 @@ public class MovieDetailActivity extends AppCompatActivity
 
             overviewTV.setText(movie.getmOverview());
         }
+    }
+
+    private void setGenre() {
+        Resources r = getResources();
+        int[] res = r.getIntArray(R.array.genres);
+        int[] gen = movie.getmGenres();
+        String[] genStr = r.getStringArray(R.array.genre_names);
+        ArrayList<Integer> result = new ArrayList<>();
+        HashMap<Integer, String> map = new HashMap<>();
+        for (int i = 0; i < res.length; i++) {
+            map.put(res[i], genStr[i]);
+        }
+
+        for(int i = 0; i < gen.length; i++) {
+            int con = gen[i];
+            if (res[i] == con) {
+                result.add(gen[i]);
+            }
+        }
+
+        String join = "";
+
+        Set set = map.entrySet();
+        Iterator i = set.iterator();
+        while (i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            //System.out.print(me.getKey() + ": ");
+            Integer key = (Integer) me.getKey();
+            for (int j = 0; j < result.size(); j++) {
+                if (result.get(j).equals(key)) {
+                    join += (map.get(key) + " - ");
+                }
+            }
+        }
+        joinGenre(join);
+
+    }
+
+    private void joinGenre(String gStr) {
+
+        String split = StringUtils.removeEnd(gStr, " - ");
+        mGenres.setText(split);
+
     }
 
     private void fetchTrailers(Movie movie) {
@@ -149,7 +207,7 @@ public class MovieDetailActivity extends AppCompatActivity
     @Override
     public void DetailsFetched(List<Detail> details) {
         //Log.i(TAG, "called: " + details.size());
-        //Log.i(TAG, "response: " + details.get(i).getmIso());
+        //Log.i(TAG, "genre: " + details.get(i).getmIso());
         for (int i = 0; i < details.size(); i++)
             if (details.get(i).getmIso().contains("US")) {
                 List<SubDetails> subDetails = details.get(i).getmRelease();

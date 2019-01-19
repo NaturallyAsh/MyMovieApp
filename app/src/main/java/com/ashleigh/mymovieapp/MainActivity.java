@@ -6,15 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
@@ -22,6 +22,7 @@ import com.ashleigh.mymovieapp.adapters.MovieListAdapter;
 import com.ashleigh.mymovieapp.data.Complete;
 import com.ashleigh.mymovieapp.data.FetchMoviesTask;
 import com.ashleigh.mymovieapp.models.Movie;
+import com.ashleigh.mymovieapp.models.MovieTrendingFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,13 +33,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements MovieListAdapter.MovieListCallback,
-    FetchMoviesTask.Callback{
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -48,14 +50,12 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
     public static final String ARG_MOVIE_ITEM = "movie_item";
     public static final String ARG_SEARCH = "search_query";
 
-    MovieFragment movieFragment;
+    MovieTrendingFragment mTrendingFragment;
     private MovieListAdapter movieListAdapter;
     private ArrayList<Movie> movieArrayList = new ArrayList<>();
-    String mSort = FetchMoviesTask.POPULAR;
+    String mSort;
     @BindView(R.id.main_toolbar)
     Toolbar toolbar;
-    @BindView(R.id.main_movie_recyclerview)
-    RecyclerView recyclerView;
     @BindView(R.id.error_tv)
     TextView errorTv;
 
@@ -71,14 +71,19 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
             checkPermission();
         }
 
-        String tag = MovieFragment.class.getSimpleName();
-        this.movieFragment = (MovieFragment) getSupportFragmentManager().findFragmentByTag(tag);
-        if (this.movieFragment == null) {
-            this.movieFragment = new MovieFragment();
-            getSupportFragmentManager().beginTransaction().add(this.movieFragment, tag).commit();
+        if (savedInstanceState == null) {
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+
+            MovieTrendingFragment trendingFragment = new MovieTrendingFragment();
+            transaction
+                    .add(R.id.movie_container, trendingFragment, TAG)
+                    .commit();
+        } else {
+            getSupportFragmentManager().findFragmentByTag(TAG);
         }
 
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        /*recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         movieListAdapter = new MovieListAdapter(MainActivity.this, movieArrayList, this);
         recyclerView.setAdapter(movieListAdapter);
 
@@ -97,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
                 errorTv.setVisibility(View.VISIBLE);
             }
         }
+        */
         Intent searchIntent = getIntent();
         if (Intent.ACTION_SEARCH.equals(searchIntent.getAction())) {
             String searchQuery = searchIntent.getStringExtra(SearchManager.QUERY);
@@ -111,14 +117,14 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(EXTRA_SORT, mSort);
+        /*outState.putString(EXTRA_SORT, mSort);
         ArrayList<Movie> movies = movieListAdapter.getmMovies();
         if (movies != null && !movies.isEmpty()) {
             outState.putParcelableArrayList(EXTRA_MOVIES, movieArrayList);
-        }
+        }*/
     }
 
-    @Override
+    /*@Override
     public void OpenDetail(Movie movie, int position) {
         //Log.i(TAG, "movie item: " + movie.getmId());
         Bundle bundle = new Bundle();
@@ -126,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
         Intent intent = new Intent(MainActivity.this, MovieDetailActivity.class);
         intent.putExtras(bundle);
         startActivity(intent);
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -138,39 +144,47 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setIconifiedByDefault(false);
-        switch (mSort) {
+        /*switch (mSort) {
             case FetchMoviesTask.POPULAR:
-                menu.findItem(R.id.menu_popular).setChecked(true);
+                menu.findItem(R.id.menu_popular).setChecked(false);
                 break;
             case FetchMoviesTask.TOP_RATED:
-                menu.findItem(R.id.menu_top_rated).setChecked(true);
+                menu.findItem(R.id.menu_top_rated).setChecked(false);
                 break;
-        }
+        }*/
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        Fragment newFragment = null;
         switch (item.getItemId()) {
             case R.id.menu_popular:
                 mSort = FetchMoviesTask.POPULAR;
-                fetchMovies(mSort);
-                item.setChecked(true);
+                newFragment = MovieFragment.getInstance(mSort);
+                //fetchMovies(mSort);
+                //item.setChecked(true);
                 break;
             case R.id.menu_top_rated:
                 mSort = FetchMoviesTask.TOP_RATED;
-                fetchMovies(mSort);
-                item.setChecked(true);
+                newFragment = MovieFragment.getInstance(mSort);
+                //fetchMovies(mSort);
+                //item.setChecked(true);
                 break;
-            default:
-                break;
+        }
+        if (newFragment != null) {
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction
+                    .replace(R.id.movie_container, newFragment)
+                    .commit();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void fetchMovies(String sortBy) {
+    /*public void fetchMovies(String sortBy) {
         findViewById(R.id.progress_bar).setVisibility(View.VISIBLE);
         FetchMoviesTask.NotifyMovieFetchComplete complete = new FetchMoviesTask.NotifyMovieFetchComplete(this);
         new FetchMoviesTask(sortBy, complete).execute();
@@ -182,47 +196,7 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
             movieListAdapter.add(((FetchMoviesTask.NotifyMovieFetchComplete) complete).getMovies());
             findViewById(R.id.progress_bar).setVisibility(View.GONE);
         }
-    }
-
-    public static class MovieFragment extends Fragment implements FetchMoviesTask.Callback{
-
-        private boolean mPaused = false;
-        private Complete mWaiting = null;
-
-        public MovieFragment() {}
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setRetainInstance(true);
-        }
-
-        @Override
-        public void onPause(){
-            super.onPause();
-            mPaused = true;
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            mPaused = false;
-            if (mWaiting != null) {
-                OnMoviesFetched(mWaiting);
-            }
-        }
-
-        @Override
-        public void OnMoviesFetched(Complete complete) {
-            if (getActivity() instanceof FetchMoviesTask.Callback && !mPaused) {
-                FetchMoviesTask.Callback callback = (FetchMoviesTask.Callback) getActivity();
-                callback.OnMoviesFetched(complete);
-                mWaiting = null;
-            } else {
-                mWaiting = complete;
-            }
-        }
-    }
+    }*/
 
     private void checkPermission()
     {

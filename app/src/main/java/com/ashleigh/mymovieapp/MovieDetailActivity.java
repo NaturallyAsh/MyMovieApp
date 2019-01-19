@@ -96,7 +96,7 @@ public class MovieDetailActivity extends AppCompatActivity
         if (intent != null) {
             movie = intent.getExtras().getParcelable(MainActivity.ARG_MOVIE_ITEM);
             assert movie != null;
-            Log.i(TAG, "movie detail: " + movie.getmId());
+            //Log.i(TAG, "movie detail: " + movie.getmId());
         }
         collapsingToolbar.setTitle(movie.getmTitle());
 
@@ -114,7 +114,6 @@ public class MovieDetailActivity extends AppCompatActivity
         fetchTrailers(movie);
         fetchDetails(movie);
         setGenre();
-        //Log.i(TAG, "genres: " + Arrays.toString(movie.getmGenres()));
     }
 
     private void loadBackdrop() {
@@ -206,15 +205,12 @@ public class MovieDetailActivity extends AppCompatActivity
 
     @Override
     public void DetailsFetched(List<Detail> details) {
-        //Log.i(TAG, "called: " + details.size());
-        //Log.i(TAG, "genre: " + details.get(i).getmIso());
         for (int i = 0; i < details.size(); i++)
             if (details.get(i).getmIso().contains("US")) {
                 List<SubDetails> subDetails = details.get(i).getmRelease();
                 for (int j = 0; j < subDetails.size(); i++) {
-                    /* Log.i(TAG, "cert: " + subDetails.get(j).getmCert()); */
                     mMPAA_TV.setText(subDetails.get(j).getmCert());
-                    Log.i(TAG, "mpaa: " + mMPAA_TV.getText().toString());
+                    //Log.i(TAG, "mpaa: " + mMPAA_TV.getText().toString());
                     break;
                 }
             }

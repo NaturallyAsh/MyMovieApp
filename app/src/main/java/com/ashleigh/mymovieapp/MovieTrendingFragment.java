@@ -84,9 +84,19 @@ public class MovieTrendingFragment extends Fragment implements
     @Override
     public void DiscoverFetched(List<Discover> discovers) {
         for (int i = 0; i < discovers.size(); i++) {
-            //Log.i(TAG, "discovers: " + discovers.get(i).getmBackdrop());
+            Log.i(TAG, "backdrop discovers: " + discovers.get(i).getmBackdrop());
+            Log.i(TAG, "poster discovers: " + discovers.get(i).getmPoster());
+
             backdropUrls.add(discovers.get(i).getmBackdrop());
             posterUrls.add(discovers.get(i).getmPoster());
+
+            if (discovers.get(i).getmBackdrop() == null) {
+                discovers.remove(i).getmBackdrop();
+                discovers.remove(i -1).getmPoster();
+            } else if (discovers.get(i).getmPoster() == null) {
+                discovers.remove(i).getmPoster();
+                discovers.remove(i + 1).getmBackdrop();
+            }
 
         }
         if (backdropUrls != null) {
@@ -120,7 +130,7 @@ public class MovieTrendingFragment extends Fragment implements
 
     private void loadPoster(List<String> posterUrls) {
 
-        Log.i(TAG, "poster urls: " + posterUrls.size());
+        //Log.i(TAG, "poster urls: " + posterUrls.size());
         for (int i = 0; i < posterUrls.size(); i++) {
             /*if (posterUrls.get(i) == null) {
                 continue;

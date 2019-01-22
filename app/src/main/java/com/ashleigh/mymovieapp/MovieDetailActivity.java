@@ -17,9 +17,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.ashleigh.mymovieapp.adapters.CastAdapter;
 import com.ashleigh.mymovieapp.adapters.TrailerAdapter;
+import com.ashleigh.mymovieapp.data.FetchCastTask;
 import com.ashleigh.mymovieapp.data.FetchDetailsTask;
 import com.ashleigh.mymovieapp.data.FetchTrailerTask;
+import com.ashleigh.mymovieapp.models.Cast;
 import com.ashleigh.mymovieapp.models.Detail;
 import com.ashleigh.mymovieapp.models.Movie;
 import com.ashleigh.mymovieapp.models.SubDetails;
@@ -50,13 +53,16 @@ import butterknife.ButterKnife;
 
 public class MovieDetailActivity extends AppCompatActivity
         implements FetchTrailerTask.OnTrailersFetchedListener, TrailerAdapter.OnTrailerClickedListener,
-        FetchDetailsTask.OnDetailsFetchedListener {
+        FetchDetailsTask.OnDetailsFetchedListener, CastAdapter.OnCastClickedListener,
+        FetchCastTask.OnCastCallListener {
 
     private static final String TAG = MovieDetailActivity.class.getSimpleName();
 
     private Movie movie;
     private Context context;
-    private TrailerAdapter adapter;
+    private TrailerAdapter trailerAdapter;
+    private CastAdapter castAdapter;
+    private ArrayList<Cast> castArrayList = new ArrayList<>();
     private ArrayList<Trailer> trailerList = new ArrayList<>();
     @BindView(R.id.detail_appbar)
     AppBarLayout appBarLayout;
@@ -73,11 +79,13 @@ public class MovieDetailActivity extends AppCompatActivity
     @BindView(R.id.detail_overviewTv)
     TextView overviewTV;
     @BindView(R.id.trailers_recyclerview)
-    RecyclerView recyclerView;
+    RecyclerView trailerRecyclerView;
     @BindView(R.id.mpaa)
     TextView mMPAA_TV;
     @BindView(R.id.genres)
     TextView mGenres;
+    @BindView(R.id.cast_recyclerview)
+    RecyclerView castRecyclerview;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,12 +115,20 @@ public class MovieDetailActivity extends AppCompatActivity
         LinearLayoutManager linearLayout =
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
 
-        recyclerView.setLayoutManager(linearLayout);
-        adapter = new TrailerAdapter(MovieDetailActivity.this, trailerList, this);
-        recyclerView.setAdapter(adapter);
+        LinearLayoutManager castLinearLayout =
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+
+        trailerRecyclerView.setLayoutManager(linearLayout);
+        trailerAdapter = new TrailerAdapter(MovieDetailActivity.this, trailerList, this);
+        trailerRecyclerView.setAdapter(trailerAdapter);
+
+        castRecyclerview.setLayoutManager(castLinearLayout);
+        castAdapter = new CastAdapter(MovieDetailActivity.this, castArrayList, this);
+        castRecyclerview.setAdapter(castAdapter);
 
         fetchTrailers(movie);
         fetchDetails(movie);
+        fetchCast(movie);
         setGenre();
     }
 
@@ -185,7 +201,7 @@ public class MovieDetailActivity extends AppCompatActivity
 
     @Override
     public void FetchedTrailers(List<Trailer> trailers) {
-        adapter.addTrailer(trailers);
+        trailerAdapter.addTrailer(trailers);
     }
 
     @Override
@@ -214,5 +230,19 @@ public class MovieDetailActivity extends AppCompatActivity
                     break;
                 }
             }
+    }
+
+    private void fetchCast(Movie movie) {
+        new FetchCastTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, movie.getmId());
+    }
+
+    @Override
+    public void OnCastClicked(int position) {
+
+    }
+
+    @Override
+    public void OnCastCalled(List<Cast> casts) {
+        castAdapter.add(casts);
     }
 }

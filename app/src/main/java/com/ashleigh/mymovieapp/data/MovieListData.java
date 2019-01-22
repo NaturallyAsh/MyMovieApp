@@ -1,5 +1,6 @@
 package com.ashleigh.mymovieapp.data;
 
+import com.ashleigh.mymovieapp.models.Casts;
 import com.ashleigh.mymovieapp.models.Details;
 import com.ashleigh.mymovieapp.models.Discovers;
 import com.ashleigh.mymovieapp.models.Movies;
@@ -29,4 +30,6 @@ public interface MovieListData {
                                         @Query("page") int page,
                                         @Query("primary_release_year") int release_year,
                                         @Query("with_release_type") int release_type);
+    @GET("3/movie/{movie_id}/credits")
+    Call<Casts> fetchCasts(@Path("movie_id") long id, @Query("api_key") String api_key);
 }
